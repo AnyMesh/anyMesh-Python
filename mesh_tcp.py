@@ -24,7 +24,7 @@ class MeshTcp:
     def setup(self):
         f = Factory()
         f.protocol = MeshTcpProtocol(self.tcp_port)
-        reactor.listenTCP(self.tcp_port,f)
+        reactor.listenTCP(self.tcp_port, f)
 
     def connect(self, address):
         print "tcp connect"

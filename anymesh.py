@@ -5,19 +5,19 @@ from mesh_tcp import MeshTcp
 from mesh_udp import MeshUdp
 
 def main():
+    AnyMesh()
 
-    global udp, tcp
+class AnyMesh:
+    def __init__(self):
+        self.udp = MeshUdp(self, "c8m3!x", 12345)
+        self.tcp = MeshTcp(12346)
+        self.udp.setup()
+        self.tcp.setup()
 
-    udp = MeshUdp("c8m3!x", 12345)
-    tcp = MeshTcp(12346)
-    udp.setup()
-    tcp.setup()
+        reactor.run()
 
-    reactor.run()
-
-def connectTo(address):
-    global tcp
-    tcp.connect(address)
+    def connectTo(self, address):
+        self.tcp.connect(address)
 
 if __name__ == "__main__":
     main()

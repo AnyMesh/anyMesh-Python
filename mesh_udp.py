@@ -2,17 +2,18 @@ from socket import *
 import socket
 from twisted.internet import reactor, task
 from twisted.internet.protocol import DatagramProtocol
-from anymesh import connectTo
+
 
 class MeshUdpProtocol(DatagramProtocol):
-    def __init__(self, network_id, udp_port):
+    def __init__(self, meshudp, network_id, udp_port):
+        self.meshudp = meshudp
         self.network_id = network_id
         self.udp_port = udp_port
     def datagramReceived(self, data, (host, port)):
         print "received %r from %s:%d" % (data, host, port)
         localhost = socket.gethostbyname(socket.gethostname())
-        if data == self.network_id:
-            connectTo(host)
+        if data == self.network_id and localhost != host:
+            self.meshudp.anymesh.connectTo(host)
 
     def startProtocol(self):
         print "protocol started"
@@ -25,10 +26,11 @@ class MeshUdpProtocol(DatagramProtocol):
 
 
 class MeshUdp:
-    def __init__(self, network_id, udp_port):
+    def __init__(self, anymesh, network_id, udp_port):
+        self.anymesh = anymesh
         self.network_id = network_id
         self.udp_port = udp_port
 
 
     def setup(self):
-        reactor.listenUDP(self.udp_port, MeshUdpProtocol(self.network_id, self.udp_port))
+        reactor.listenUDP(self.udp_port, MeshUdpProtocol(self, self.network_id, self.udp_port))
