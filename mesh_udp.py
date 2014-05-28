@@ -5,10 +5,10 @@ from twisted.internet.protocol import DatagramProtocol
 
 
 class MeshUdpProtocol(DatagramProtocol):
-    def __init__(self, meshudp, network_id, udp_port):
-        self.meshudp = meshudp
-        self.network_id = network_id
-        self.udp_port = udp_port
+    def __init__(self, mesh_udp):
+        self.mesh_udp = mesh_udp
+        self.network_id = mesh_udp.network_id
+        self.udp_port = mesh_udp.udp_port
     def datagramReceived(self, data, (host, port)):
         print "received %r from %s:%d" % (data, host, port)
         localhost = socket.gethostbyname(socket.gethostname())
@@ -26,11 +26,11 @@ class MeshUdpProtocol(DatagramProtocol):
 
 
 class MeshUdp:
-    def __init__(self, anymesh, network_id, udp_port):
+    def __init__(self, anymesh):
         self.anymesh = anymesh
-        self.network_id = network_id
-        self.udp_port = udp_port
+        self.network_id = anymesh.network_id
+        self.udp_port = anymesh.udp_port
 
 
     def setup(self):
-        reactor.listenUDP(self.udp_port, MeshUdpProtocol(self, self.network_id, self.udp_port))
+        reactor.listenUDP(self.udp_port, MeshUdpProtocol(self))
