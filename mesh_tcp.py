@@ -44,6 +44,14 @@ class MeshClientFactory(ClientFactory):
          return {'type': 'info', 'sender': self.anymesh.name, 'listensTo': self.anymesh.listens_to}
 
 class MeshServerFactory(ServerFactory):
+    protocol = MeshTcpProtocol
+
+    def __init__(self, mesh_tcp):
+        self.mesh_tcp = mesh_tcp
+        self.anymesh = mesh_tcp.anymesh
+
+    def getInfoObject(self):
+         return {'type': 'info', 'sender': self.anymesh.name, 'listensTo': self.anymesh.listens_to}
 
 
 class MeshTcp:
@@ -52,7 +60,7 @@ class MeshTcp:
         self.connections = []
 
     def setup(self):
-        f = Factory()
+        f = MeshServerFactory(self)
         f.protocol = MeshTcpProtocol
         reactor.listenTCP(self.anymesh.tcp_port, f)
 
