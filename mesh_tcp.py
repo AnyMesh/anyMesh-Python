@@ -1,13 +1,12 @@
 import json
 from twisted.internet import reactor
-from twisted.internet.protocol import ClientFactory, ServerFactory, Factory
+from twisted.internet.protocol import ClientFactory, ServerFactory
 from twisted.protocols.basic import LineReceiver
 
 
 class MeshTcpProtocol(LineReceiver):
 
     def lineReceived(self, data):
-        print data
         msgObj = json.loads(data)
         if msgObj['type'] == 'info':
             self.name = msgObj['sender']
@@ -17,12 +16,10 @@ class MeshTcpProtocol(LineReceiver):
             self.factory.anymesh.receivedMessage(msgObj)
 
     def connectionMade(self):
-        print "making connection"
         self.factory.mesh_tcp.connections.append(self)
         self.sendInfo()
 
     def connectionLost(self, reason):
-        print "connection lost"
         self.factory.mesh_tcp.connections.remove(self)
         self.factory.anymesh.disconnectedFrom(self)
 
@@ -69,7 +66,6 @@ class MeshTcp:
 
     def connect(self, address):
         if not self.connectionExists(address):
-            print "connect to " + address
             reactor.connectTCP(address, self.anymesh.tcp_port, MeshClientFactory(self))
 
 
