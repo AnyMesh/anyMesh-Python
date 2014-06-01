@@ -13,6 +13,8 @@ class MeshTcpProtocol(LineReceiver):
             self.name = msgObj['sender']
             self.listens_to = msgObj['listensTo']
             self.factory.anymesh.connectedTo(self)
+        else:
+            self.factory.anymesh.receivedMessage(msgObj)
 
     def connectionMade(self):
         print "making connection"
@@ -22,6 +24,7 @@ class MeshTcpProtocol(LineReceiver):
     def connectionLost(self, reason):
         print "connection lost"
         self.factory.mesh_tcp.connections.remove(self)
+        self.factory.anymesh.disconnectedFrom(self)
 
     def sendInfo(self):
         infoObj = self.factory.getInfoObject()
