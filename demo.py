@@ -4,14 +4,19 @@ from anymesh import AnyMesh, AnyMeshDelegateProtocol, MeshMessage, MeshDeviceInf
 
 class AmDelegate(AnyMeshDelegateProtocol):
     def connectedTo(self, device_info):
-        pass
+        lb = frame.contents['body']
+        lb[0].body.append(urwid.Text('connected to ' + device_info.name))
+        loop.draw_screen()
 
     def disconnectedFrom(self, name):
-        pass
+        lb = frame.contents['body']
+        lb[0].body.append(urwid.Text('disconnected from ' + name))
+        loop.draw_screen()
 
     def receivedMessage(self, message):
-        pass
-
+        lb = frame.contents['body']
+        lb[0].body.append(urwid.Text('Message from ' + message.sender + '\r\n Target: ' + message.data))
+        loop.draw_screen()
 
 def start_anymesh(name, listens_to):
     global delegate, any_mesh, status
@@ -39,7 +44,7 @@ class SetupListBox(urwid.ListBox):
                     if index > 2:
                         device_listens.append(item.edit_text)
                 start_anymesh(device_name, device_listens)
-                load_msg_column()
+                load_msg_frame()
 
             else:
                 self.body.insert(self.focus_position + 1, urwid.Edit("Enter a keyword to listen to: "))
@@ -61,16 +66,19 @@ class NewMsgListBox(urwid.ListBox):
         pass
 
 
-def load_msg_column():
-    global text
+def load_msg_frame():
+    global frame
+    frame.body = MessageListBox()
+    lb = NewMsgListBox()
+    frame.footer = urwid.BoxAdapter(lb, 7)
+    frame.focus_position = 'footer'
+    lb.set_focus(0)
 
 
 
-
-
-boxAdapter = urwid.BoxAdapter(SetupListBox(), 50)
+frame = urwid.Frame(SetupListBox())
 text = urwid.Text('Connected devices')
-columns = urwid.Columns([('weight', 2, boxAdapter), ('weight', 1, text)], 5)
+columns = urwid.Columns([('weight', 2, urwid.BoxAdapter(frame, 50)), ('weight', 1, text)], 5)
 fill = urwid.Filler(columns, 'top')
 
 loop = urwid.MainLoop(fill, event_loop=urwid.TwistedEventLoop(), unhandled_input=handle_input)

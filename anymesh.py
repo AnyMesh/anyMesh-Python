@@ -25,10 +25,10 @@ class AnyMesh:
 
     #From TCP:
     def connectedTo(self, connection):
-        if connection.name != None:
+        if hasattr(connection, 'name'):
             self.delegate.connectedTo(MeshDeviceInfo(connection.name, connection.listens_to))
     def disconnectedFrom(self, connection):
-        if connection.name != None:
+        if hasattr(connection, 'name'):
             self.delegate.disconnectedFrom(connection.name)
     def receivedMessage(self, data):
         msg = MeshMessage(data['sender'], data['target'], data['type'], data['data'])
