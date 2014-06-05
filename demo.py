@@ -6,17 +6,24 @@ class AmDelegate(AnyMeshDelegateProtocol):
     def connectedTo(self, device_info):
         lb = frame.contents['body']
         lb[0].body.append(urwid.Text('connected to ' + device_info.name))
+        lb[0].set_focus(lb[0].focus_position + 1)
         loop.draw_screen()
 
     def disconnectedFrom(self, name):
         lb = frame.contents['body']
         lb[0].body.append(urwid.Text('disconnected from ' + name))
+        lb[0].set_focus(lb[0].focus_position + 1)
         loop.draw_screen()
 
     def receivedMessage(self, message):
         lb = frame.contents['body']
-        lb[0].body.append(urwid.Text('Message from ' + message.sender + '\r\n Target: ' + message.data))
+        lb[0].body.append(urwid.Divider())
+        lb[0].body.append(urwid.Text('Message from ' + message.sender))
+        lb[0].body.append(urwid.Text(message.data['msg']))
+        lb[0].body.append(urwid.Divider())
+        lb[0].set_focus(lb[0].focus_position + 4)
         loop.draw_screen()
+        pass
 
 def start_anymesh(name, listens_to):
     global delegate, any_mesh, status
@@ -81,5 +88,6 @@ text = urwid.Text('Connected devices')
 columns = urwid.Columns([('weight', 2, urwid.BoxAdapter(frame, 50)), ('weight', 1, text)], 5)
 fill = urwid.Filler(columns, 'top')
 
-loop = urwid.MainLoop(fill, event_loop=urwid.TwistedEventLoop(), unhandled_input=handle_input)
+tLoop = urwid.TwistedEventLoop()
+loop = urwid.MainLoop(fill, event_loop=tLoop, unhandled_input=handle_input)
 loop.run()
