@@ -11,9 +11,9 @@ class MeshTcpProtocol(LineReceiver):
         if msgObj['type'] == 'info':
             self.name = msgObj['sender']
             self.listens_to = msgObj['listensTo']
-            self.factory.anymesh.connectedTo(self)
+            self.factory.anymesh._connected_to(self)
         else:
-            self.factory.anymesh.receivedMessage(msgObj)
+            self.factory.anymesh._received_msg(msgObj)
 
     def connectionMade(self):
         self.factory.mesh_tcp.connections.append(self)
@@ -21,7 +21,7 @@ class MeshTcpProtocol(LineReceiver):
 
     def connectionLost(self, reason):
         self.factory.mesh_tcp.connections.remove(self)
-        self.factory.anymesh.disconnectedFrom(self)
+        self.factory.anymesh._disconnected_from(self)
 
     def sendInfo(self):
         infoObj = self.factory.getInfoObject()
@@ -68,6 +68,21 @@ class MeshTcp:
         if not self.connectionExists(address):
             reactor.connectTCP(address, self.anymesh.tcp_port, MeshClientFactory(self))
 
+    def request(self, target, message):
+        msg_string = self.string_from_msg_data('req', target, message)
+        for connection in self.connections:
+            if connection.name == target:
+                connection.sendLine(msg_string)
+                return
+
+    def publish(self, target, message):
+        msg_string = self.string_from_msg_data('req', target, message)
+        for connection in self.connections:
+            for subscription in connection.listens_to:
+                if subscription == target:
+                    connection.sendLine(msg_string)
+                    break
+
 
 #utility methods:
     def connectionExists(self, ipAddress):
@@ -75,3 +90,7 @@ class MeshTcp:
             if connection.transport.getPeer().host == ipAddress:
                 return True
         return False
+
+    def string_from_msg_data(self, msg_type, target, payload):
+        package = {"type": msg_type, "target": target, "sender": self.anymesh.name, "data": payload}
+        return json.dumps(package)

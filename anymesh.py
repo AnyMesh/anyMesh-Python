@@ -3,6 +3,27 @@ from twisted.internet import reactor
 from mesh_tcp import MeshTcp
 from mesh_udp import MeshUdp
 
+class MeshDeviceInfo:
+    def __init__(self, name, listens_to):
+        self.name = name
+        self.listens_to = listens_to
+
+class MeshMessage:
+    def __init__(self, sender, target, type, data):
+        self.sender = sender
+        self.target = target
+        self.type = type
+        self.data = data
+
+class AnyMeshDelegateProtocol:
+    def connected_to(self, device_info):
+        print "connected to " + device_info.name
+    def disconnected_from(self, name):
+        print "disconnected from " + name
+    def received_msg(self, message):
+        print "received message from " + message.sender
+        print "message body: " + json.dumps(message.data)
+
 
 class AnyMesh:
     def __init__(self, name, listens_to, delegate, network_id="c8m3!x", udp_port=12345, tcp_port=12346):
@@ -17,43 +38,27 @@ class AnyMesh:
         self.udp.setup()
         self.tcp.setup()
 
+    def publish(self, target, message):
+        self.tcp.publish(target, message)
+    def request(self, target, message):
+        self.tcp.request(target, message)
 
     #From UDP:
-    def connectTo(self, address):
+    def _connect_to(self, address):
         self.tcp.connect(address)
 
-
     #From TCP:
-    def connectedTo(self, connection):
+    def _connected_to(self, connection):
         if hasattr(connection, 'name'):
-            self.delegate.connectedTo(MeshDeviceInfo(connection.name, connection.listens_to))
-    def disconnectedFrom(self, connection):
+            self.delegate.connected_to(MeshDeviceInfo(connection.name, connection.listens_to))
+
+    def _disconnected_from(self, connection):
         if hasattr(connection, 'name'):
-            self.delegate.disconnectedFrom(connection.name)
-    def receivedMessage(self, data):
+            self.delegate.disconnected_from(connection.name)
+
+    def _received_msg(self, data):
         msg = MeshMessage(data['sender'], data['target'], data['type'], data['data'])
-        self.delegate.receivedMessage(msg)
-
-class MeshDeviceInfo:
-    def __init__(self, name, listens_to):
-        self.name = name
-        self.listens_to = listens_to
-
-class MeshMessage:
-    def __init__(self, sender, target, type, data):
-        self.sender = sender
-        self.target = target
-        self.type = type
-        self.data = data
-
-class AnyMeshDelegateProtocol:
-    def connectedTo(self, device_info):
-        print "connected to " + device_info.name
-    def disconnectedFrom(self, name):
-        print "disconnected from " + name
-    def receivedMessage(self, message):
-        print "received message from " + message.sender
-        print "message body: " + json.dumps(message.data)
+        self.delegate.received_msg(msg)
 
 
 

@@ -12,7 +12,7 @@ class MeshUdpProtocol(DatagramProtocol):
     def datagramReceived(self, data, (host, port)):
         localhost = socket.gethostbyname(socket.gethostname())
         if data == self.network_id and localhost != host and localhost != "127.0.1.1":
-            self.mesh_udp.anymesh.connectTo(host)
+            self.mesh_udp.anymesh._connect_to(host)
             pass
 
     def startProtocol(self):

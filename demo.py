@@ -67,10 +67,14 @@ class NewMsgListBox(urwid.ListBox):
     def __init__(self):
         body = [urwid.Edit("Target:"), urwid.Edit("Message:"), urwid.Button("Request", self.req_pressed), urwid.Button("Publish", self.pub_pressed)]
         super(NewMsgListBox, self).__init__(urwid.SimpleFocusListWalker(body))
-    def req_pressed(self):
-        pass
-    def pub_pressed(self):
-        pass
+    def req_pressed(self, something):
+        target = self.body[0].edit_text
+        message = {"msg": self.body[1].edit_text}
+        any_mesh.request(target, message)
+    def pub_pressed(self, something):
+        target = self.body[0].edit_text
+        message = {"msg": self.body[1].edit_text}
+        any_mesh.publish(target, message)
 
 
 def load_msg_frame():
