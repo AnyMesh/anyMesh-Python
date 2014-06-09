@@ -3,19 +3,19 @@ from anymesh import AnyMesh, AnyMeshDelegateProtocol, MeshMessage, MeshDeviceInf
 
 
 class AmDelegate(AnyMeshDelegateProtocol):
-    def connectedTo(self, device_info):
+    def connected_to(self, device_info):
         lb = frame.contents['body']
         lb[0].body.append(urwid.Text('connected to ' + device_info.name))
         lb[0].set_focus(lb[0].focus_position + 1)
         loop.draw_screen()
 
-    def disconnectedFrom(self, name):
+    def disconnected_from(self, name):
         lb = frame.contents['body']
         lb[0].body.append(urwid.Text('disconnected from ' + name))
         lb[0].set_focus(lb[0].focus_position + 1)
         loop.draw_screen()
 
-    def receivedMessage(self, message):
+    def received_msg(self, message):
         lb = frame.contents['body']
         lb[0].body.append(urwid.Divider())
         lb[0].body.append(urwid.Text('Message from ' + message.sender))
