@@ -37,6 +37,15 @@ class AnyMesh:
         self.tcp = MeshTcp(self)
         self.udp.setup()
         self.tcp.setup()
+    def run(self):
+        reactor.run()
+
+    def get_connections(self):
+        active_connections = []
+        for connection in self.tcp.connections:
+            if hasattr(connection, 'name'):
+                active_connections.append(MeshDeviceInfo(connection.name, connection.listens_to))
+        return active_connections[:]
 
     def publish(self, target, message):
         self.tcp.publish(target, message)

@@ -7,12 +7,14 @@ class AmDelegate(AnyMeshDelegateProtocol):
         lb = frame.contents['body']
         lb[0].body.append(urwid.Text('connected to ' + device_info.name))
         lb[0].set_focus(lb[0].focus_position + 1)
+        refresh_device_column()
         loop.draw_screen()
 
     def disconnected_from(self, name):
         lb = frame.contents['body']
         lb[0].body.append(urwid.Text('disconnected from ' + name))
         lb[0].set_focus(lb[0].focus_position + 1)
+        refresh_device_column()
         loop.draw_screen()
 
     def received_msg(self, message):
@@ -58,19 +60,24 @@ class SetupListBox(urwid.ListBox):
                 self.focus_position += 1
         elif key == 'esc':
             raise urwid.ExitMainLoop()
+
+
 class MessageListBox(urwid.ListBox):
     def __init__(self):
         body = [urwid.Text('Message Log'), urwid.Divider()]
         super(MessageListBox, self).__init__(urwid.SimpleListWalker(body))
 
+
 class NewMsgListBox(urwid.ListBox):
     def __init__(self):
         body = [urwid.Edit("Target:"), urwid.Edit("Message:"), urwid.Button("Request", self.req_pressed), urwid.Button("Publish", self.pub_pressed)]
         super(NewMsgListBox, self).__init__(urwid.SimpleFocusListWalker(body))
+
     def req_pressed(self, something):
         target = self.body[0].edit_text
         message = {"msg": self.body[1].edit_text}
         any_mesh.request(target, message)
+
     def pub_pressed(self, something):
         target = self.body[0].edit_text
         message = {"msg": self.body[1].edit_text}
@@ -85,11 +92,16 @@ def load_msg_frame():
     frame.focus_position = 'footer'
     lb.set_focus(0)
 
-
+def refresh_device_column():
+    options = ('pack', None)
+    device_list = [(urwid.Text("Connected Devices"), options), (urwid.Divider(), options)]
+    for device in any_mesh.get_connections():
+        device_list.append((urwid.Text(device.name), options))
+    device_pile.contents = device_list
 
 frame = urwid.Frame(SetupListBox())
-text = urwid.Text('Connected devices')
-columns = urwid.Columns([('weight', 2, urwid.BoxAdapter(frame, 50)), ('weight', 1, text)], 5)
+device_pile = urwid.Pile([urwid.Text("Connected Devices")])
+columns = urwid.Columns([('weight', 2, urwid.BoxAdapter(frame, 50)), ('weight', 1, device_pile)], 5)
 fill = urwid.Filler(columns, 'top')
 
 tLoop = urwid.TwistedEventLoop()
