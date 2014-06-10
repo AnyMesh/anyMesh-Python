@@ -1,34 +1,21 @@
 import urwid
-from anymesh import AnyMesh, AnyMeshDelegateProtocol, MeshMessage, MeshDeviceInfo
+from anymesh.core import AnyMesh, AnyMeshDelegateProtocol, MeshMessage, MeshDeviceInfo
 
-
+# DELEGATE CLASS FOR ANYMESH
 class AmDelegate(AnyMeshDelegateProtocol):
     def connected_to(self, device_info):
-        lb = frame.contents['body']
-        lb[0].body.append(urwid.Text('connected to ' + device_info.name))
-        lb[0].set_focus(lb[0].focus_position + 1)
-        refresh_device_column()
-        loop.draw_screen()
+        msg_list_box.add_line('connected to ' + device_info.name)
 
     def disconnected_from(self, name):
-        lb = frame.contents['body']
-        lb[0].body.append(urwid.Text('disconnected from ' + name))
-        lb[0].set_focus(lb[0].focus_position + 1)
-        refresh_device_column()
-        loop.draw_screen()
+        msg_list_box.add_line('disconnected from ' + name)
 
     def received_msg(self, message):
-        lb = frame.contents['body']
-        lb[0].body.append(urwid.Divider())
-        lb[0].body.append(urwid.Text('Message from ' + message.sender))
-        lb[0].body.append(urwid.Text(message.data['msg']))
-        lb[0].body.append(urwid.Divider())
-        lb[0].set_focus(lb[0].focus_position + 4)
-        loop.draw_screen()
-        pass
+        msg_list_box.add_line('Message from ' + message.sender, message.data['msg'])
 
+
+#FUNCTION TO START ANYMESH.  WE DON'T CALL .RUN BECAUSE URWID HAS STARTED THE TWISTED REACTOR FOR US
 def start_anymesh(name, listens_to):
-    global delegate, any_mesh, status
+    global delegate, any_mesh
     delegate = AmDelegate()
     if 'any_mesh' not in globals():
         any_mesh = AnyMesh(name, listens_to, delegate)
@@ -67,30 +54,47 @@ class MessageListBox(urwid.ListBox):
         body = [urwid.Text('Message Log'), urwid.Divider()]
         super(MessageListBox, self).__init__(urwid.SimpleListWalker(body))
 
+    def add_line(self, text_to_add, second_line=None):
+        if second_line is not None:
+            self.body.append(urwid.Divider())
+        self.body.append(urwid.Text(text_to_add))
+        if second_line is not None:
+            self.body.append(urwid.Text(second_line))
+            self.body.append(urwid.Divider())
+        self.set_focus(self.focus_position + 1)
+        if second_line is not None:
+            self.set_focus(self.focus_position + 3)
+        refresh_device_column()
+        loop.draw_screen()
 
-class NewMsgListBox(urwid.ListBox):
+
+class MsgEntryListBox(urwid.ListBox):
     def __init__(self):
         body = [urwid.Edit("Target:"), urwid.Edit("Message:"), urwid.Button("Request", self.req_pressed), urwid.Button("Publish", self.pub_pressed)]
-        super(NewMsgListBox, self).__init__(urwid.SimpleFocusListWalker(body))
+        super(MsgEntryListBox, self).__init__(urwid.SimpleFocusListWalker(body))
 
+    #THESE TWO ACTIONS WILL CAUSE ANYMESH TO SEND A MESSAGE - EITHER A PUBLISH OR A REQUEST
     def req_pressed(self, something):
         target = self.body[0].edit_text
         message = {"msg": self.body[1].edit_text}
         any_mesh.request(target, message)
+        msg_list_box.add_line('Sending request', message['msg'])
 
     def pub_pressed(self, something):
         target = self.body[0].edit_text
         message = {"msg": self.body[1].edit_text}
         any_mesh.publish(target, message)
+        msg_list_box.add_line('Publishing message', message['msg'])
 
 
 def load_msg_frame():
-    global frame
-    frame.body = MessageListBox()
-    lb = NewMsgListBox()
-    frame.footer = urwid.BoxAdapter(lb, 7)
+    global frame, entry_box, msg_list_box
+    msg_list_box = MessageListBox()
+    entry_box = MsgEntryListBox()
+    frame.body = msg_list_box
+    frame.footer = urwid.BoxAdapter(entry_box, 7)
     frame.focus_position = 'footer'
-    lb.set_focus(0)
+    entry_box.set_focus(0)
 
 def refresh_device_column():
     options = ('pack', None)
