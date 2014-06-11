@@ -71,7 +71,7 @@ AnyMesh Python uses Twisted's Reactor run loop.  If your app needs to integrate 
 
 If possible, I would recommend the former, as long as your tasks do not block the event loop for too long.
 
-
+###Any questions, comments, or suggestions, e-mail me (Dave) at davepaul0@gmail.com!
 
 
 
