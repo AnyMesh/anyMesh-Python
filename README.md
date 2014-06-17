@@ -57,12 +57,15 @@ Start the Twisted Event Loop:
 
 Send a request:
 
-    any_mesh.request("Bob", {"msg":"Hello Bob", "priority":1});
+    any_mesh.request("Bob", {"msg":"Hello Bob", "priority":1})
 
 Publish to subscribers:
 
-    any_mesh.publish("updates", {"update":"new headlines!", "content":[1, 5, 8]});
+    any_mesh.publish("updates", {"update":"new headlines!", "content":[1, 5, 8]})
 
+Get info on current connections:
+
+    var connectionsList = any_mesh.get_connections()
 
 ## Some notes on Twisted:
 AnyMesh Python uses Twisted's Reactor run loop.  If your app needs to integrate its own event loops, you have a couple of options:
