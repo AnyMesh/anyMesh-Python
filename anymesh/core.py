@@ -44,8 +44,8 @@ class AnyMesh:
         active_connections = []
         for connection in self.tcp.connections:
             if hasattr(connection, 'name'):
-                active_connections.append(MeshDeviceInfo(connection.name, connection.listens_to))
-        return active_connections[:]
+                active_connections.append(MeshDeviceInfo(connection.name[:], connection.listens_to[:]))
+        return active_connections
 
     def publish(self, target, message):
         self.tcp.publish(target, message)
@@ -59,11 +59,11 @@ class AnyMesh:
     #From TCP:
     def _connected_to(self, connection):
         if hasattr(connection, 'name'):
-            self.delegate.connected_to(MeshDeviceInfo(connection.name, connection.listens_to))
+            self.delegate.connected_to(MeshDeviceInfo(connection.name[:], connection.listens_to[:]))
 
     def _disconnected_from(self, connection):
         if hasattr(connection, 'name'):
-            self.delegate.disconnected_from(connection.name)
+            self.delegate.disconnected_from(connection.name[:])
 
     def _received_msg(self, data):
         msg = MeshMessage(data['sender'], data['target'], data['type'], data['data'])
