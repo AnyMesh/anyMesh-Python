@@ -1,19 +1,22 @@
 import json
 from twisted.internet import reactor
-from mesh_tcp import MeshTcp
-from mesh_udp import MeshUdp
+from connections import MeshTcp
+from discovery import MeshUdp
+
 
 class MeshDeviceInfo:
     def __init__(self, name, listens_to):
         self.name = name
         self.listens_to = listens_to
 
+
 class MeshMessage:
-    def __init__(self, sender, target, type, data):
+    def __init__(self, sender, target, msg_type, data):
         self.sender = sender
         self.target = target
-        self.type = type
+        self.type = msg_type
         self.data = data
+
 
 class AnyMeshDelegateProtocol:
     def connected_to(self, device_info):
@@ -26,7 +29,7 @@ class AnyMeshDelegateProtocol:
 
 
 class AnyMesh:
-    def __init__(self, name, listens_to, delegate, network_id="c8m3!x", udp_port=12345, tcp_port=12346):
+    def __init__(self, name, listens_to, delegate, network_id="anymesh", udp_port=12345, tcp_port=12346):
         self.name = name
         self.listens_to = listens_to
         self.network_id = network_id
@@ -37,7 +40,9 @@ class AnyMesh:
         self.tcp = MeshTcp(self)
         self.udp.setup()
         self.tcp.setup()
-    def run(self):
+
+    @staticmethod
+    def run():
         reactor.run()
 
     def get_connections(self):
@@ -49,12 +54,16 @@ class AnyMesh:
 
     def publish(self, target, message):
         self.tcp.publish(target, message)
+
     def request(self, target, message):
         self.tcp.request(target, message)
 
+    def _report(self, report_type, report_msg):
+        self._received_msg({'sender': "diag", 'type': report_type, 'target': 'report', 'data': {'msg': report_msg}})
+
     #From UDP:
-    def _connect_to(self, address):
-        self.tcp.connect(address)
+    def _connect_to(self, address, port, name):
+        self.tcp.connect(address, port, name)
 
     #From TCP:
     def _connected_to(self, connection):
@@ -69,6 +78,8 @@ class AnyMesh:
         msg = MeshMessage(data['sender'], data['target'], data['type'], data['data'])
         self.delegate.received_msg(msg)
 
+    def _listening_at(self, server_port):
+        self.udp.server_port = server_port
 
 
 
