@@ -20,7 +20,7 @@ class MeshUdpProtocol(DatagramProtocol):
             localhost = socket.gethostbyname(socket.gethostname())
             msg_port = int(data_array[1])
             msg_name = data_array[2]
-            if localhost != host or msg_port != self.mesh_udp.server_port:
+            if (localhost != host and localhost != '127.0.1.1') or msg_port != self.mesh_udp.server_port:
                 #self.mesh_udp.anymesh._report('udp', 'discovery says yes to connect')
                 self.mesh_udp.anymesh._connect_to(host, msg_port, msg_name)
 
