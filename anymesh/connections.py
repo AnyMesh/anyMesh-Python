@@ -10,7 +10,7 @@ class MeshTcpProtocol(LineReceiver):
     def lineReceived(self, data):
         msgObj = json.loads(data)
         if msgObj['type'] == 'info':
-            self.factory.anymesh._report('tcp', 'client adding ' + msgObj['sender'])
+            #self.factory.anymesh._report('tcp', 'client adding ' + msgObj['sender'])
             self.name = msgObj['sender']
             self.listens_to = msgObj['listensTo']
             self.factory.anymesh._connected_to(self)
@@ -43,7 +43,7 @@ class MeshTcpServerProtocol(MeshTcpProtocol):
         msgObj = json.loads(data)
         if msgObj['type'] == 'info':
             if not self.factory.mesh_tcp.connection_for_name(msgObj['sender']):
-                self.factory.anymesh._report('tcp', 'server adding ' + msgObj['sender'])
+                #self.factory.anymesh._report('tcp', 'server adding ' + msgObj['sender'])
                 self.name = msgObj['sender']
                 self.listens_to = msgObj['listensTo']
                 self.factory.anymesh._connected_to(self)
@@ -102,12 +102,14 @@ class MeshTcp:
 
     def connect(self, address, port, name):
         if not self.connection_for_name(name):
-            self.anymesh._report('tcp', 'connecting now to ' + address + ',' + str(port) + ',' + name)
+            #self.anymesh._report('tcp', 'connecting now to ' + address + ',' + str(port) + ',' + name)
             reactor.connectTCP(address, port, MeshClientFactory(self))
 
     def request(self, target, message):
         msg_string = self.string_from_msg_data('req', target, message)
-        self.connection_for_name(target).sendLine(msg_string)
+        conn = self.connection_for_name(target)
+        if conn:
+            self.connection_for_name(target).sendLine(msg_string)
 
     def publish(self, target, message):
         msg_string = self.string_from_msg_data('req', target, message)
@@ -126,5 +128,5 @@ class MeshTcp:
         for connection in self.connections:
             if hasattr(connection, 'name'):
                 if connection.name == name:
-                    return name
+                    return connection
         return None
