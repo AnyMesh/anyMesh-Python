@@ -10,7 +10,8 @@ class AmDelegate(AnyMeshDelegateProtocol):
         msg_list_box.add_line('disconnected from ' + name)
 
     def received_msg(self, message):
-        msg_list_box.add_line('Message from ' + message.sender, message.data['msg'])
+         if 'msg_list_box' in globals():
+            msg_list_box.add_line('Message from ' + message.sender, message.data['msg'])
 
 
 #FUNCTION TO START ANYMESH.  WE DON'T CALL .RUN BECAUSE URWID HAS STARTED THE TWISTED REACTOR FOR US
