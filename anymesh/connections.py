@@ -42,6 +42,7 @@ class MeshTcpServerProtocol(MeshTcpProtocol):
     def lineReceived(self, data):
         msgObj = json.loads(data)
         if msgObj['type'] == 'info':
+            print('got info from ' + msgObj['sender'])
             if not self.factory.mesh_tcp.connection_for_name(msgObj['sender']):
                 #self.factory.anymesh._report('tcp', 'server adding ' + msgObj['sender'])
                 self.name = msgObj['sender']
@@ -49,6 +50,7 @@ class MeshTcpServerProtocol(MeshTcpProtocol):
                 self.factory.anymesh._connected_to(self)
                 self.sendInfo()
             else:
+                print('throwing out')
                 self.factory.mesh_tcp.connections.remove(self)
                 self.disconnect()
         else:
