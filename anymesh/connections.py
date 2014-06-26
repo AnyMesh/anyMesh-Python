@@ -8,11 +8,22 @@ from twisted.protocols.basic import LineReceiver
 class MeshTcpProtocol(LineReceiver):
 
     def lineReceived(self, data):
+        connections = self.factory.mesh_tcp.connections
         msgObj = json.loads(data)
         if msgObj['type'] == 'info':
-            #self.factory.anymesh._report('tcp', 'client adding ' + msgObj['sender'])
+            #new - check array for duplicate - if ok, need to send PASS message to server
+            existing_connection = self.factory.mesh_tcp.connection_for_name(msgObj['sender'])
+            if existing_connection:
+                existing_index = connections.index(existing_connection)
+                this_index = connections.index(self)
+                if this_index > existing_index:
+                    print('throwing out new')
+                    connections.remove(self)
+                    self.transport.loseConnection()
+                    return
             self.name = msgObj['sender']
             self.listens_to = msgObj['listensTo']
+            self.sendPass()
             self.factory.anymesh._connected_to(self)
         else:
             self.factory.anymesh._received_msg(msgObj)
@@ -25,6 +36,11 @@ class MeshTcpProtocol(LineReceiver):
         if self in self.factory.mesh_tcp.connections:
             self.factory.mesh_tcp.connections.remove(self)
         self.factory.anymesh._disconnected_from(self)
+
+    def sendPass(self):
+        passObj = {}
+        passObj['type'] = "pass"
+        self.sendLine(json.dumps(passObj))
 
     def sendInfo(self):
         infoObj = self.factory.getInfoObject()
@@ -41,18 +57,19 @@ class MeshTcpClientProtocol(MeshTcpProtocol):
 class MeshTcpServerProtocol(MeshTcpProtocol):
     def lineReceived(self, data):
         msgObj = json.loads(data)
-        if msgObj['type'] == 'info':
+        if msgObj['type'] == 'pass':
+            self.factory.anymesh._connected_to(self)
+        elif msgObj['type'] == 'info':
             print('got info from ' + msgObj['sender'])
             if not self.factory.mesh_tcp.connection_for_name(msgObj['sender']):
                 #self.factory.anymesh._report('tcp', 'server adding ' + msgObj['sender'])
                 self.name = msgObj['sender']
                 self.listens_to = msgObj['listensTo']
-                self.factory.anymesh._connected_to(self)
                 self.sendInfo()
             else:
                 print('throwing out')
                 self.factory.mesh_tcp.connections.remove(self)
-                self.disconnect()
+                self.transport.loseConnection()
         else:
             self.factory.anymesh._received_msg(msgObj)
 
