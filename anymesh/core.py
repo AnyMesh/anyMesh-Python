@@ -1,7 +1,7 @@
 import json
-from twisted.internet import reactor
-from connections import MeshTcp
-from discovery import MeshUdp
+from twisted.internet import reactor, error
+from connections import MeshFactory, MeshTcpProtocol
+from discovery import MeshUdpProtocol
 
 
 class MeshDeviceInfo:
@@ -29,17 +29,40 @@ class AnyMeshDelegateProtocol:
 
 
 class AnyMesh:
-    def __init__(self, name, listens_to, delegate, network_id="anymesh", udp_port=12345, tcp_port=12346):
+    MSG_TYPE_REQUEST = 0
+    MSG_TYPE_PUBLISH = 1
+    MSG_TYPE_SYSTEM = 2
+    MSG_SYSTYPE_SUBSCRIPTIONS = 0
+
+
+    def __init__(self, name, subscriptions, delegate, network_id="anymesh", udp_port=12345, tcp_port=12346):
         self.name = name
-        self.listens_to = listens_to
+        self.subscriptions = subscriptions
+        self.connections = []
+
         self.network_id = network_id
         self.udp_port = udp_port
         self.tcp_port = tcp_port
         self.delegate = delegate
-        self.udp = MeshUdp(self)
-        self.tcp = MeshTcp(self)
-        self.udp.setup()
-        self.tcp.setup()
+
+        #self.udp.setup()
+        self.setup_tcp()
+
+
+
+    def setup_tcp(self):
+        f = MeshFactory(self)
+        f.protocol = MeshTcpProtocol
+        try:
+            reactor.listenTCP(self.anymesh.tcp_port, f)
+        except error.CannotListenError:
+            self.anymesh.tcp_port += 1
+            self.setup()
+        else:
+            self.anymesh._listening_at(self.anymesh.tcp_port)
+
+    def setup_udp(self):
+        reactor.listenMulticast(self.udp_port, MeshUdpProtocol(self), listenMultiple=True)
 
     @staticmethod
     def run():
@@ -58,8 +81,8 @@ class AnyMesh:
     def request(self, target, message):
         self.tcp.request(target, message)
 
-    def _report(self, report_type, report_msg):
-        self._received_msg({'sender': "diag", 'type': report_type, 'target': 'report', 'data': {'msg': report_msg}})
+    def _report(self, report_msg):
+        self._received_msg({'sender': "diag", 'type': AnyMesh.MSG_TYPE_SYSTEM, 'target': 'report', 'data': {'msg': report_msg}})
 
     #From UDP:
     def _connect_to(self, address, port, name):
@@ -81,8 +104,3 @@ class AnyMesh:
     def _listening_at(self, server_port):
         self.udp.server_port = server_port
 
-
-
-if __name__ == "__main__":
-    AnyMesh('dave', ['global', 'status'], AnyMeshDelegateProtocol())
-    reactor.run()
