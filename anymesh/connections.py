@@ -84,7 +84,7 @@ class MeshTcpProtocol(LineReceiver):
         self.sendLine(json.dumps(infoObj))
 
 
-class MeshFactory(ClientFactory):
+class MeshClientFactory(ClientFactory):
     protocol = MeshTcpProtocol
 
     def __init__(self, anymesh):
@@ -95,6 +95,16 @@ class MeshFactory(ClientFactory):
 
     def clientConnectionLost(self, connector, reason):
         pass
+
+    def getInfoObject(self):
+        return {'type': 'info', 'sender': self.anymesh.name, 'listensTo': self.anymesh.listens_to}
+
+
+class MeshServerFactory(ServerFactory):
+    protocol = MeshTcpProtocol
+
+    def __init__(self, anymesh):
+        self.anymesh = anymesh
 
     def getInfoObject(self):
         return {'type': 'info', 'sender': self.anymesh.name, 'listensTo': self.anymesh.listens_to}
