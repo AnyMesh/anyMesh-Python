@@ -1,10 +1,9 @@
 import json
 from socket import *
 import socket
-from twisted.internet import reactor, task
+from twisted.internet import task
 from twisted.internet.protocol import ClientFactory, ServerFactory, DatagramProtocol
 from twisted.protocols.basic import LineReceiver
-
 
 
 class MeshUdpProtocol(DatagramProtocol):
@@ -41,6 +40,9 @@ class MeshUdpProtocol(DatagramProtocol):
 
 
 class MeshTcpProtocol(LineReceiver):
+    def __init__(self):
+        self.name = None
+        self.subscriptions = []
 
     def lineReceived(self, data):
         connections = self.factory.mesh_tcp.connections
@@ -58,7 +60,7 @@ class MeshTcpProtocol(LineReceiver):
                     self.transport.loseConnection()
                     return
             self.name = msgObj['sender']
-            self.listens_to = msgObj['listensTo']
+            self.subscriptions = msgObj['listensTo']
             self.sendPass()
             self.factory.anymesh._connected_to(self)
         else:
@@ -66,15 +68,17 @@ class MeshTcpProtocol(LineReceiver):
 
     def connectionMade(self):
         self.factory.mesh_tcp.connections.append(self)
-        self.sendInfo()
+        self.sendInfo(False)
 
     def connectionLost(self, reason):
         if self in self.factory.mesh_tcp.connections:
             self.factory.mesh_tcp.connections.remove(self)
         self.factory.anymesh._disconnected_from(self)
 
-    def sendInfo(self):
-        info_obj = self.factory.get_info_object()
+    def sendInfo(self, isUpdate):
+        anymesh = self.factory.anymesh
+        msg_obj = {'type': anymesh.MSG_SYSTYPE_SUBSCRIPTIONS, 'isUpdate': isUpdate, 'subscriptions': anymesh.subscriptions}
+        info_obj = {'type': anymesh.MSG_TYPE_SYSTEM, 'sender': anymesh.name, 'target': self.name, 'data': msg_obj}
         self.sendLine(json.dumps(info_obj))
 
 
@@ -90,15 +94,9 @@ class MeshClientFactory(ClientFactory):
     def clientConnectionLost(self, connector, reason):
         pass
 
-    def get_info_object(self):
-        return {'type': 'info', 'sender': self.anymesh.name, 'listensTo': self.anymesh.listens_to}
-
 
 class MeshServerFactory(ServerFactory):
     protocol = MeshTcpProtocol
 
     def __init__(self, anymesh):
         self.anymesh = anymesh
-
-    def get_info_object(self):
-        return {'type': 'info', 'sender': self.anymesh.name, 'listensTo': self.anymesh.listens_to}
