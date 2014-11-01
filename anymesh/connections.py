@@ -23,8 +23,9 @@ class MeshUdpProtocol(DatagramProtocol):
             msg_port = int(data_array[1])
             msg_name = data_array[2]
             if (localhost != host and localhost != '127.0.1.1') or msg_port != self.anymesh.tcp_port:
-                #self.mesh_udp.anymesh._report('udp', 'discovery says yes to connect')
-                self.anymesh.connect_tcp(host, msg_port, msg_name)
+                #check order of name
+                if self.anymesh.name < msg_name:
+                    self.anymesh.connect_tcp(host, msg_port, msg_name)
 
     def startProtocol(self):
         #self.mesh_udp.anymesh._report('udp', 'starting protocol')
@@ -47,7 +48,6 @@ class MeshTcpProtocol(LineReceiver):
 
     def lineReceived(self, data):
         anymesh = self.factory.anymesh
-        connections = anymesh.connections
 
         msgObj = json.loads(data)
         if msgObj['type'] == anymesh.MSG_TYPE_SYSTEM:
@@ -64,8 +64,9 @@ class MeshTcpProtocol(LineReceiver):
             anymesh._received_msg(msgObj)
 
     def connectionMade(self):
-        self.factory.anymesh.connections.append(self)
-        self.sendInfo(False)
+        if not self in self.factory.anymesh.connections:
+            self.factory.anymesh.connections.append(self)
+            self.sendInfo(False)
 
     def connectionLost(self, reason):
         if self in self.factory.anymesh.connections:
