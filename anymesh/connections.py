@@ -24,7 +24,7 @@ class MeshUdpProtocol(DatagramProtocol):
             msg_name = data_array[2]
             if (localhost != host and localhost != '127.0.1.1') or msg_port != self.anymesh.tcp_port:
                 #check order of name
-                if self.anymesh.name < msg_name:
+                if msg_name < self.anymesh.name:
                     self.anymesh.connect_tcp(host, msg_port, msg_name)
 
     def startProtocol(self):
