@@ -8,11 +8,12 @@ from twisted.protocols.basic import LineReceiver
 
 class MeshUdpProtocol(DatagramProtocol):
     def __init__(self, anymesh):
+        self.anymesh = anymesh
         self.network_id = anymesh.network_id
         self.udp_port = anymesh.udp_port
 
     def datagramReceived(self, data, (host, port)):
-        if self.mesh_udp.server_port == 0:
+        if self.anymesh.tcp_port == 0:
             return
         data_array = data.split(',')
         msg_id = data_array[0]
@@ -21,7 +22,7 @@ class MeshUdpProtocol(DatagramProtocol):
             localhost = socket.gethostbyname(socket.gethostname())
             msg_port = int(data_array[1])
             msg_name = data_array[2]
-            if (localhost != host and localhost != '127.0.1.1') or msg_port != self.mesh_udp.server_port:
+            if (localhost != host and localhost != '127.0.1.1') or msg_port != self.anymesh.tcp_port:
                 #self.mesh_udp.anymesh._report('udp', 'discovery says yes to connect')
                 self.anymesh.connect_tcp(host, msg_port, msg_name)
 
@@ -35,7 +36,7 @@ class MeshUdpProtocol(DatagramProtocol):
         #self.mesh_udp.anymesh._report('udp', 'broadcasting on ' + str(self.mesh_udp.server_port))
         if self.anymesh.tcp_port == 0:
             return
-        udp_msg = self.network_id + ',' + str(self.mesh_udp.server_port) + ',' + self.mesh_udp.anymesh.name
+        udp_msg = self.network_id + ',' + str(self.anymesh.tcp_port) + ',' + self.anymesh.name
         self.transport.write(udp_msg, ('<broadcast>', self.udp_port))
 
 
@@ -45,35 +46,31 @@ class MeshTcpProtocol(LineReceiver):
         self.subscriptions = []
 
     def lineReceived(self, data):
-        connections = self.factory.mesh_tcp.connections
+        anymesh = self.factory.anymesh
+        connections = anymesh.connections
+
         msgObj = json.loads(data)
-        if msgObj['type'] == 'info':
-            self.factory.anymesh._report('tcp', 'client received info')
-            #new - check array for duplicate - if ok, need to send PASS message to server
-            existing_connection = self.factory.mesh_tcp.connection_for_name(msgObj['sender'])
-            if existing_connection:
-                existing_index = connections.index(existing_connection)
-                this_index = connections.index(self)
-                if this_index > existing_index:
-                    self.factory.anymesh._report('tcp', 'throwing out based on index')
-                    connections.remove(self)
-                    self.transport.loseConnection()
-                    return
-            self.name = msgObj['sender']
-            self.subscriptions = msgObj['listensTo']
-            self.sendPass()
-            self.factory.anymesh._connected_to(self)
+        if msgObj['type'] == anymesh.MSG_TYPE_SYSTEM:
+            sysData = msgObj['data']
+            if sysData['type'] == anymesh.MSG_SYSTYPE_SUBSCRIPTIONS:
+                self.subscriptions = sysData['subscriptions']
+
+                if sysData['isUpdate']:
+                    anymesh._updated_subscriptions(self.subscriptions, self.name)
+                else:
+                    self.name = msgObj['sender']
+                    anymesh._connected_to(self)
         else:
-            self.factory.anymesh._received_msg(msgObj)
+            anymesh._received_msg(msgObj)
 
     def connectionMade(self):
-        self.factory.mesh_tcp.connections.append(self)
+        self.factory.anymesh.connections.append(self)
         self.sendInfo(False)
 
     def connectionLost(self, reason):
-        if self in self.factory.mesh_tcp.connections:
-            self.factory.mesh_tcp.connections.remove(self)
-        self.factory.anymesh._disconnected_from(self)
+        if self in self.factory.anymesh.connections:
+            self.factory.anymesh.connections.remove(self)
+            self.factory.anymesh._disconnected_from(self)
 
     def sendInfo(self, isUpdate):
         anymesh = self.factory.anymesh

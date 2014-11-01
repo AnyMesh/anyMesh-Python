@@ -54,10 +54,9 @@ class AnyMesh:
             reactor.listenTCP(self.working_port, f)
         except error.CannotListenError:
             self.working_port += 1
-            self.setup()
+            self.setup_tcp()
         else:
             self.tcp_port = self.working_port
-            self._listening_at(self.anymesh.tcp_port)
 
     def setup_udp(self):
         reactor.listenMulticast(self.udp_port, MeshUdpProtocol(self), listenMultiple=True)
@@ -110,12 +109,14 @@ class AnyMesh:
     #From TCP:
     def _connected_to(self, connection):
         if hasattr(connection, 'name'):
-            self.delegate.connected_to(MeshDeviceInfo(connection.name[:], connection.listens_to[:]))
+            self.delegate.connected_to(MeshDeviceInfo(connection.name[:], connection.subscriptions[:]))
 
     def _disconnected_from(self, connection):
         if hasattr(connection, 'name'):
-            self.delegate.disconnected_from(connection.name[:])
+           self.delegate.disconnected_from(connection.name[:])
 
     def _received_msg(self, data):
         msg = MeshMessage(data['sender'], data['target'], data['type'], data['data'])
         self.delegate.received_msg(msg)
+    def _updated_subscriptions(self, subscriptions, name):
+        pass
