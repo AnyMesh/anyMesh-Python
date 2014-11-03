@@ -30,4 +30,4 @@ leftMesh =AnyMesh('left', 'global', LeftDelegate())
 
 rightMesh = AnyMesh('right', 'global', RightDelegate())
 
-leftMesh.run()
+AnyMesh.run()
