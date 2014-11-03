@@ -1,4 +1,4 @@
-from anymesh.core import AnyMesh, AnyMeshDelegateProtocol
+from anymesh import AnyMesh, AnyMeshDelegateProtocol
 
 
 import unittest

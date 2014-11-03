@@ -8,4 +8,5 @@ setup(name='anymesh',
       author_email='davepaul0@gmail.com',
       license='MIT',
       packages=['anymesh'],
+      install_requires=['twisted'],
       zip_safe=False)
