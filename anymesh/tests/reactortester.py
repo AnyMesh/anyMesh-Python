@@ -13,5 +13,6 @@ class ReactorTestCase(unittest.TestCase):
     def reactorTestComplete(self):
         self.done = True
         self.assertTrue(True, "test complete!")
+        print "Test Complete!"
         if reactor.running:
             reactor.stop()

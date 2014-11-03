@@ -80,10 +80,14 @@ class AnyMesh:
     def publish(self, target, message):
         msg_string = self.string_from_msg_data('req', target, message)
         for connection in self.connections:
-            for subscription in connection.listens_to:
+            for subscription in connection.subscriptions:
                 if subscription == target:
                     connection.sendLine(msg_string)
                     break
+    def update_subscriptions(self, subscriptions):
+        self.subscriptions = subscriptions
+        for connection in self.connections:
+            connection.sendInfo(True)
 
 #utility methods:
     def string_from_msg_data(self, msg_type, target, payload):
