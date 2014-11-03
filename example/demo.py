@@ -1,5 +1,7 @@
+import sys
+sys.path.append('../')
 import urwid
-from anymesh.core import AnyMesh, AnyMeshDelegateProtocol, MeshMessage, MeshDeviceInfo
+from anymesh import AnyMesh, AnyMeshDelegateProtocol, MeshMessage, MeshDeviceInfo
 
 # DELEGATE CLASS FOR ANYMESH
 class AmDelegate(AnyMeshDelegateProtocol):
