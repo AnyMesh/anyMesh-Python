@@ -11,10 +11,10 @@ class TestAnyMeshBasic(ReactorTestCase, AnyMeshDelegateProtocol):
             print "connection detected!"
             self.connections += 1
             if self.connections == 2:
-                self.test_done()
+                self.reactorTestComplete()
 
     def disconnected_from(self, name):
-            self.reactorAssertTrue(False, "disconnected from " + name + " no disconnecting in this test!")
+            self.reactorAssert(False, "disconnected from " + name + " no disconnecting in this test!")
     def received_msg(self, message):
             pass
 

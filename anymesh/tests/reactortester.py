@@ -6,11 +6,11 @@ class ReactorTestCase(unittest.TestCase):
         super(ReactorTestCase, self).__init__(*args, **kwargs)
         self.done = False
 
-    def reactorAssertTrue(self, success, msg):
+    def reactorAssert(self, success, msg):
         if not self.done:
             self.assertTrue(success, msg)
 
-    def test_done(self):
+    def reactorTestComplete(self):
         self.done = True
         self.assertTrue(True, "test complete!")
         if reactor.running:
