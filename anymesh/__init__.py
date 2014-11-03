@@ -25,7 +25,8 @@ class AnyMeshDelegateProtocol:
     def received_msg(self, message):
         print "received message from " + message.sender
         print "message body: " + json.dumps(message.data)
-
+    def received_updated_subscriptions(self, subscriptions, name):
+        print "received updated subscriptions for" + name
 
 class AnyMesh:
     MSG_TYPE_REQUEST = 0
@@ -106,7 +107,7 @@ class AnyMesh:
     def _report(self, report_msg):
         self._received_msg({'sender': "diag", 'type': AnyMesh.MSG_TYPE_SYSTEM, 'target': 'report', 'data': {'msg': report_msg}})
 
-    #From TCP:
+#From TCP:
     def _connected_to(self, connection):
         if hasattr(connection, 'name'):
             self.delegate.connected_to(MeshDeviceInfo(connection.name[:], connection.subscriptions[:]))
@@ -119,4 +120,4 @@ class AnyMesh:
         msg = MeshMessage(data['sender'], data['target'], data['type'], data['data'])
         self.delegate.received_msg(msg)
     def _updated_subscriptions(self, subscriptions, name):
-        pass
+        self.delegate.received_updated_subscriptions(subscriptions, name)
