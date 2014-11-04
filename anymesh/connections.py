@@ -22,19 +22,18 @@ class MeshUdpProtocol(DatagramProtocol):
             localhost = socket.gethostbyname(socket.gethostname())
             msg_port = int(data_array[1])
             msg_name = data_array[2]
-            if (localhost != host and localhost != '127.0.1.1') or msg_port != self.anymesh.tcp_port:
+            if (localhost != host) or msg_port != self.anymesh.tcp_port:
+
                 #check order of name
                 if msg_name < self.anymesh.name:
                     self.anymesh.connect_tcp(host, msg_port, msg_name)
 
     def startProtocol(self):
-        #self.mesh_udp.anymesh._report('udp', 'starting protocol')
         self.transport.socket.setsockopt(SOL_SOCKET, SO_BROADCAST, True)
         l = task.LoopingCall(self.broadcast_function)
         l.start(2.0)
 
     def broadcast_function(self):
-        #self.mesh_udp.anymesh._report('udp', 'broadcasting on ' + str(self.mesh_udp.server_port))
         if self.anymesh.tcp_port == 0:
             return
         udp_msg = self.network_id + ',' + str(self.anymesh.tcp_port) + ',' + self.anymesh.name
