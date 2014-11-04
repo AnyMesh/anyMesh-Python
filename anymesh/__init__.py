@@ -18,15 +18,14 @@ class MeshMessage:
 
 
 class AnyMeshDelegateProtocol:
-    def connected_to(self, device_info):
-        print "connected to " + device_info.name
-    def disconnected_from(self, name):
-        print "disconnected from " + name
-    def received_msg(self, message):
-        print "received message from " + message.sender
-        print "message body: " + json.dumps(message.data)
-    def received_updated_subscriptions(self, subscriptions, name):
-        print "received updated subscriptions for" + name
+    def connected_to(self, anymesh, device_info):
+        pass
+    def disconnected_from(self, anymesh, name):
+        pass
+    def received_msg(self, anymesh, message):
+        pass
+    def received_updated_subscriptions(self, anymesh, subscriptions, name):
+        pass
 
 class AnyMesh:
     MSG_TYPE_REQUEST = 0
@@ -114,14 +113,14 @@ class AnyMesh:
 #From TCP:
     def _connected_to(self, connection):
         if hasattr(connection, 'name'):
-            self.delegate.connected_to(MeshDeviceInfo(connection.name[:], connection.subscriptions[:]))
+            self.delegate.connected_to(self, MeshDeviceInfo(connection.name[:], connection.subscriptions[:]))
 
     def _disconnected_from(self, connection):
         if hasattr(connection, 'name'):
-           self.delegate.disconnected_from(connection.name[:])
+           self.delegate.disconnected_from(self, connection.name[:])
 
     def _received_msg(self, data):
         msg = MeshMessage(data['sender'], data['target'], data['type'], data['data'])
-        self.delegate.received_msg(msg)
+        self.delegate.received_msg(self, msg)
     def _updated_subscriptions(self, subscriptions, name):
-        self.delegate.received_updated_subscriptions(subscriptions, name)
+        self.delegate.received_updated_subscriptions(self, subscriptions, name)

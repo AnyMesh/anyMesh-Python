@@ -7,15 +7,15 @@ from reactortester import ReactorTestCase
 class TestAnyMeshBasic(ReactorTestCase, AnyMeshDelegateProtocol):
     connections = 0
 
-    def connected_to(self, device_info):
+    def connected_to(self, anymesh, device_info):
             print "connection detected!"
             self.connections += 1
             if self.connections == 2:
                 self.reactorTestComplete()
 
-    def disconnected_from(self, name):
+    def disconnected_from(self, anymesh, name):
             self.reactorAssert(False, "disconnected from " + name + " no disconnecting in this test!")
-    def received_msg(self, message):
+    def received_msg(self, anymesh, message):
             pass
 
 

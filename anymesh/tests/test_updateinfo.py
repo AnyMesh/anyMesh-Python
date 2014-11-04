@@ -7,7 +7,7 @@ from reactortester import ReactorTestCase
 class TestUpdatingInfo(ReactorTestCase, AnyMeshDelegateProtocol):
     connections = 0
 
-    def connected_to(self, device_info):
+    def connected_to(self, anymesh, device_info):
             print "connection detected!"
             self.connections += 1
             if self.connections > 2:
@@ -15,14 +15,15 @@ class TestUpdatingInfo(ReactorTestCase, AnyMeshDelegateProtocol):
             if device_info.name == "receiver":
                 self.sender.publish('stuff', {'index':1})
 
-    def disconnected_from(self, name):
+    def disconnected_from(self, anymesh, name):
             self.reactorAssert(False, "no disconnecting in this test!")
-    def received_msg(self, message):
+    def received_msg(self, anymesh, message):
             if message.data['index'] == 1:
                 self.receiver.update_subscriptions(['end'])
             elif message.data['index'] == 2:
+                print "received msg for end keyword"
                 self.reactorTestComplete()
-    def received_updated_subscriptions(self, subscriptions, name):
+    def received_updated_subscriptions(self, anymesh, subscriptions, name):
             self.sender.publish('end', {'index':2})
 
     def test_connect(self):
