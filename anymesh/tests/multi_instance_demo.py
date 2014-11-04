@@ -1,6 +1,6 @@
-import anymesh.core
+from anymesh import AnyMesh, AnyMeshDelegateProtocol
 
-class LeftDelegate(anymesh.core.AnyMeshDelegateProtocol):
+class LeftDelegate(AnyMeshDelegateProtocol):
     def connected_to(self, device_info):
         print('left connected to ' + device_info.name)
 
@@ -13,7 +13,7 @@ class LeftDelegate(anymesh.core.AnyMeshDelegateProtocol):
         leftMesh.request('right', {'msg': 'back at ya righty!'})
 
 
-class RightDelegate(anymesh.core.AnyMeshDelegateProtocol):
+class RightDelegate(AnyMeshDelegateProtocol):
     def connected_to(self, device_info):
         print('right connected to ' + device_info.name)
         rightMesh.request('left', {'msg': 'hey lefty!'})
@@ -26,8 +26,8 @@ class RightDelegate(anymesh.core.AnyMeshDelegateProtocol):
         print('message: ' + message.data['msg'])
 
 
-leftMesh = anymesh.core.AnyMesh('left', 'global', LeftDelegate())
+leftMesh =AnyMesh('left', 'global', LeftDelegate())
 
-rightMesh = anymesh.core.AnyMesh('right', 'global', RightDelegate())
+rightMesh = AnyMesh('right', 'global', RightDelegate())
 
-leftMesh.run()
+AnyMesh.run()
