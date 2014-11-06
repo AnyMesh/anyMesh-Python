@@ -1,16 +1,19 @@
+import sys
+sys.path.append('../')
 import urwid
-from anymesh.core import AnyMesh, AnyMeshDelegateProtocol, MeshMessage, MeshDeviceInfo
+from anymesh import AnyMesh, AnyMeshDelegateProtocol, MeshMessage, MeshDeviceInfo
 
 # DELEGATE CLASS FOR ANYMESH
 class AmDelegate(AnyMeshDelegateProtocol):
-    def connected_to(self, device_info):
+    def connected_to(self, anymesh, device_info):
         msg_list_box.add_line('connected to ' + device_info.name)
 
-    def disconnected_from(self, name):
+    def disconnected_from(self, anymesh, name):
         msg_list_box.add_line('disconnected from ' + name)
 
-    def received_msg(self, message):
-        msg_list_box.add_line('Message from ' + message.sender, message.data['msg'])
+    def received_msg(self, anymesh, message):
+         if 'msg_list_box' in globals():
+            msg_list_box.add_line('Message from ' + message.sender, message.data['msg'])
 
 
 #FUNCTION TO START ANYMESH.  WE DON'T CALL .RUN BECAUSE URWID HAS STARTED THE TWISTED REACTOR FOR US
