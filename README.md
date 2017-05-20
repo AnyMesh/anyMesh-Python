@@ -1,3 +1,5 @@
+NOTE: AnyMesh is no longer under active development or support.
+
 #AnyMesh
 https://github.com/AnyMesh
 
@@ -94,26 +96,26 @@ Send a request:
 Publish to subscribers:
 
     any_mesh.publish("updates", {"update":"new headlines!", "content":[1, 5, 8]})
-    
-    
+
+
 ### A few more helpful methods:    
 
 Get info on current connections:
 
     var connectionsList = any_mesh.get_connections()
-    
+
 Change your anymesh instance's subscriptions:
 
 	any_mesh.update_subscriptions(['weather', 'sports'])
-	
+
 Define a callback in your delegate to be notified of another anymesh's subscription change:
 
 	def received_updated_subscriptions(self, anymesh, subscriptions, name):
 		print name + "updated their subscriptions!"
 		for subscription in subscriptions:
-          print subscription	
-	
-		
+          print subscription
+
+
 ## Some notes on Twisted:
 AnyMesh Python uses Twisted's Reactor run loop.  If your app needs to integrate its own event loops, you have a couple of options:
 * Schedule repeating tasks on Twisted's reactor: https://twistedmatrix.com/documents/12.0.0/core/howto/time.html
@@ -122,10 +124,9 @@ AnyMesh Python uses Twisted's Reactor run loop.  If your app needs to integrate 
 If possible, I would recommend the former, as long as your tasks do not block the event loop for too long.
 
 ## Still need help?
-Check out the unit tests and the example app to see AnyMesh in action. 
+Check out the unit tests and the example app to see AnyMesh in action.
 ###AnyMesh software is licensed with the MIT License
 
 ###Any questions, comments, or suggestions, contact the Author:
 Dave Paul
 davepaul0@gmail.com
-
